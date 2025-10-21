@@ -1,0 +1,5 @@
+city,temperature,windspeed,time,temperature_F
+London,13.1,9.0,2025-10-18T19:15,55.58
+Berlin,6.7,3.9,2025-10-18T19:15,44.06
+Paris,13.7,8.2,2025-10-18T19:15,56.66
+New York,18.3,9.5,2025-10-18T19:15,64.94
