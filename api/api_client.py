@@ -2,59 +2,38 @@ import logging
 import requests
 from config import BASEURL
 
-
 class WeatherAPIClient:
-    """
-        Класс для получения данных о текущей погоде через API Open-Meteo
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
 
-        Методы:
-            - get_city_weather: Получает текущую погоду для одного города
-            - get_all_cities: Получает текущую погоду для нескольких городов
-        """
     def get_city_weather(self, city: str, lat: float, lon: float) -> dict:
         """
-                Получает текущую погоду для указанного города
-
-                Args:
-                    city (str): Название города
-                    lat (float): Широта города
-                    lon (float): Долгота города
-
-                Returns:
-                    dict: Словарь с данными о погоде, включая название города
-                          и значения из current_weather API
-
-                Raises:
-                    HTTPError: Если запрос к API завершился ошибкой
-                """
+        Получает текущую погоду для указанного города.
+        """
         url = f"{BASEURL}?latitude={lat}&longitude={lon}&current_weather=true"
-        logging.info(f"Запрос погоды для {city} из {url}")
-        response = requests.get(url)
-        response.raise_for_status()
-        data = response.json()
-        return {
-            "city": city,
-            **data["current_weather"]
-        }
+        logging.info(f"Запрос погоды для города {city} по URL {url}")
+        try:
+            response = requests.get(url)
+            response.raise_for_status()  # Выбросит исключение при ошибке запроса
+            data = response.json()
+            logging.info(f"Получены данные о погоде для города {city}")
+            return {
+                "city": city,
+                **data["current_weather"]
+            }
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Ошибка при запросе погоды для города {city}: {e}")
+            raise
 
     def get_all_cities(self, cities: dict) -> list[dict]:
         """
-                Получает текущую погоду для всех городов из переданного словаря.
-
-                Args:
-                    cities (dict): Словарь вида {"город": (широта, долгота)}
-
-                Returns:
-                    list[dict]: Список словарей с данными о погоде для каждого города.
-
-                Логирование:
-                    Информационные сообщения о получении данных и ошибки при неудаче.
-                """
+        Получает текущую погоду для всех городов из переданного словаря.
+        """
         results = []
         for city, (lat, lon) in cities.items():
             try:
+                # Логирование скрыто внутри метода get_city_weather
                 results.append(self.get_city_weather(city, lat, lon))
-                logging.info(f"Получен прогноз погоды для {city}")
             except Exception as e:
-                logging.error(f"Не удалось получить прогноз погоды в {city}: {e}")
+                logging.error(f"Не удалось получить данные для города {city}: {e}")
         return results
