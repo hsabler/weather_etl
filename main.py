@@ -5,37 +5,27 @@ from transformer.weather_transformer import WeatherTransformer
 from storage.weather_record import CsvRecord
 from helper.TimestampHelper import timestamp
 
-# Новый класс для генерации имени файла и логирования
 class FileLogger:
     def __init__(self):
-        self.logger = logging.getLogger(__name__)  # создаем логгер
+        self.logger = logging.getLogger(__name__)  # Инициализация логгера
 
     def generate_filename(self):
-        # Формируем имя файла с временной меткой
+        """
+        Генерирует имя файла с текущей временной меткой
+        """
         return f"weather_data_{timestamp}.csv"
 
     def log_success(self, filename):
-        # Логируем успех сохранения
+        """
+        Логирует успешное сохранение данных в файл
+        """
         self.logger.info(f"Данные успешно сохранены в файл {filename}")
 
 
 def main():
     """
-        Главная функция для получения, преобразования и сохранения данных
-
-        Последовательность действий:
-        1. Настраивает логирование для информирования о ходе выполнения
-        2. Создаёт объекты для работы с API, трансформации данных и сохранения в CSV
-        3. Получает сырые данные о погоде для всех городов из списка CITIES
-        4. Преобразует сырые данные в pandas DataFrame для удобной обработки
-        5. Формирует имя CSV-файла с текущей датой и временем для уникальности
-        6. Сохраняет данные в CSV файл
-
-        Используемые объекты:
-            - WeatherAPIClient: получение данных о погоде
-            - WeatherTransformer: преобразование данных в DataFrame
-            - CsvRecord: сохранение данных в файл
-        """
+    Главная функция для получения, преобразования и сохранения данных
+    """
     # Настройка логирования
     logging.basicConfig(
         level=logging.INFO,
@@ -46,19 +36,16 @@ def main():
     api = WeatherAPIClient()
     transformer = WeatherTransformer()
     record = CsvRecord()
+
+    # Получение данных о погоде для всех городов
+    raw = api.get_all_cities(CITIES)  # Логирование скрыто внутри метода
+    df = transformer.to_dataframe(raw)  # Логирование будет скрыто в методах трансформера
+
+    # Сохранение данных в CSV
     file_logger = FileLogger()  # создаем объект для работы с файлами и логированием
-
-    # Сбор и преобразование сырых данных о погоде для всех городов
-    raw = api.get_all_cities(CITIES)
-    logging.info("Получены данные о погоде для выбранных городов")
-    df = transformer.to_dataframe(raw)
-    logging.info("Данные преобразованы в DataFrame")
-
-    # Генерация имени файла и логирование
-    filename = file_logger.generate_filename()
+    filename = file_logger.generate_filename()  # Генерация имени файла
     record.save(df, filename)
-    file_logger.log_success(filename)  # логируем успешное сохранение
-
+    file_logger.log_success(filename)  # Логирование успешного сохранения
 
 if __name__ == "__main__":
     main()
