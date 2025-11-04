@@ -1,11 +1,14 @@
 import logging
 import requests
 from config import BASEURL
+from helper.retry_helper import RetryHelper
 
 class WeatherAPIClient:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
+        self.retry_helper = RetryHelper(max_attempts=3, delay=2)  # Настройка повторных попыток
 
+    @RetryHelper().get_retry_decorator()  # Используем декоратор из RetryHelper
     def get_city_weather(self, city: str, lat: float, lon: float) -> dict:
         """
         Получает текущую погоду для указанного города.
@@ -23,7 +26,7 @@ class WeatherAPIClient:
             }
         except requests.exceptions.RequestException as e:
             logging.error(f"Ошибка при запросе погоды для города {city}: {e}")
-            raise
+            raise  # Ошибка будет обработана в блоке retry
 
     def get_all_cities(self, cities: dict) -> list[dict]:
         """
